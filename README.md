@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>バスレク時間配分メーカー</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f7fb;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    input[type="text"], input[type="number"] {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      flex: 1;
+    }
+    label {
+      font-size: 0.9rem;
+    }
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background: #4b7bec;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #3867d6;
+    }
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      border-radius: 8px;
+      background: #f0f2ff;
+    }
+    .item.break {
+      background: #ffe9c7;
+    }
+    .timeline {
+      margin-top: 25px;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+    }
+    .timeline-block {
+      margin-bottom: 6px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #eef2ff;
+      font-size: 0.9rem;
+    }
+    .timeline-block.break {
+      background: #ffe3b3;
+    }
+    .total-time {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>バスレク時間配分メーカー</h1>
+    <p>修学旅行バスのレクリエーションタイムラインを自動生成します。</p>
+
+    <div class="form-row">
+      <input id="name" type="text" placeholder="例：イントロドン">
+      <input id="minutes" type="number" placeholder="時間（分）" min="1">
+      <label>
+        <input id="isBreak" type="checkbox">
+        休憩にする
+      </label>
+      <button id="addBtn">追加</button>
+    </div>
+
+    <div class="list" id="list"></div>
+
+    <div class="timeline" id="timeline"></div>
+    <div class="total-time" id="totalTime"></div>
+  </div>
+
+  <script>
+    const items = [
+      { name: "連想ゲーム", minutes: 10, isBreak: false },
+      { name: "テーマしりとり", minutes: 10, isBreak: false },
+      { name: "マジカルバナナ", minutes: 10, isBreak: false },
+      { name: "山手線ゲーム", minutes: 5, isBreak: false },
+      { name: "休憩", minutes: 10, isBreak: true },
+      { name: "イントロドン", minutes: 15, isBreak: false },
+      { name: "音あてクイズ", minutes: 10, isBreak: false },
+      { name: "ワードウルフ", minutes: 10, isBreak: false },
+      { name: "すれ違いクイズ", minutes: 10, isBreak: false },
+      { name: "小休憩", minutes: 10, isBreak: true },
+      { name: "到着時間あてクイズ", minutes: 20, isBreak: false },
+      { name: "到着準備", minutes: 10, isBreak: true }
+    ];
+
+    const listEl = document.getElementById('list');
+    const timelineEl = document.getElementById('timeline');
+    const totalTimeEl = document.getElementById('totalTime');
+
+    document.getElementById('addBtn').addEventListener('click', () => {
+      const name = document.getElementById('name').value.trim();
+      const minutes = Number(document.getElementById('minutes').value);
+      const isBreak = document.getElementById('isBreak').checked;
+
+      if (!name || !minutes || minutes <= 0) {
+        alert('ゲーム名と時間を正しく入力してね。');
+        return;
+      }
+
+      items.push({ name, minutes, isBreak });
+      document.getElementById('name').value = '';
+      document.getElementById('minutes').value = '';
+      document.getElementById('isBreak').checked = false;
+
+      renderList();
+      renderTimeline();
+    });
+
+    function renderList() {
+      listEl.innerHTML = '';
+      items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item' + (item.isBreak ? ' break' : '');
+        div.innerHTML = `
+          <span>${index + 1}. ${item.isBreak ? '【休憩】' : ''}${item.name}（${item.minutes}分）</span>
+        `;
+        listEl.appendChild(div);
+      });
+    }
+
+    function renderTimeline() {
+      timelineEl.innerHTML = '<h3>タイムライン</h3>';
+      let current = 0;
+      items.forEach(item => {
+        const start = formatTime(current);
+        const end = formatTime(current + item.minutes);
+        const block = document.createElement('div');
+        block.className = 'timeline-block' + (item.isBreak ? ' break' : '');
+        block.textContent = `${start}〜${end}　${item.isBreak ? '【休憩】' : ''}${item.name}`;
+        timelineEl.appendChild(block);
+        current += item.minutes;
+      });
+      totalTimeEl.textContent = `合計時間：${current}分`;
+    }
+
+    function formatTime(min) {
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      return `${h}:${m.toString().padStart(2, '0')}`;
+    }
+
+    renderList();
+    renderTimeline();
+  </script>
+</body>
+</html>
